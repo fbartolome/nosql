@@ -1,6 +1,9 @@
 
-# Created by https://www.gitignore.io/api/java,macos,maven,intellij,intellij+all
-# Edit at https://www.gitignore.io/?templates=java,macos,maven,intellij,intellij+all
+# Created by https://www.gitignore.io/api/java,macos,maven,floobits,intellij,intellij+all
+# Edit at https://www.gitignore.io/?templates=java,macos,maven,floobits,intellij,intellij+all
+
+### floobits ###
+.floo
 
 ### Intellij ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
@@ -199,4 +202,4 @@ buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
 
-# End of https://www.gitignore.io/api/java,macos,maven,intellij,intellij+all
+# End of https://www.gitignore.io/api/java,macos,maven,floobits,intellij,intellij+all
