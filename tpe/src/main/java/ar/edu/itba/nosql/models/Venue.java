@@ -12,6 +12,12 @@ public class Venue {
         this.longitude = longitude;
     }
 
+    public Venue(String id) {
+        this.id = id;
+        latitude = 0;
+        longitude = 0;
+    }
+
     public String getId() {
         return id;
     }

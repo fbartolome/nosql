@@ -6,8 +6,12 @@ import ar.edu.itba.nosql.models.Visit;
 import com.opencsv.CSVReader;
 
 import java.io.*;
-import java.util.LinkedList;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Stream;
 
 public class CSVManager {
 
@@ -24,8 +28,21 @@ public class CSVManager {
     }
 
     // TODO
-    public static List<Trajectory> csvToTrajectories(String pathname, Character separator){
-        return null;
+    public static List<Trajectory> csvToTrajectories(String pathname, Character separator) {
+        Map<Integer,Trajectory> trajectoryMap = new HashMap<>();
+        try (Stream<String> stream = Files.lines(Paths.get(pathname), StandardCharsets.ISO_8859_1)){
+            stream.forEach(line -> {
+                String[] fields = line.split(separator.toString());
+                if(!trajectoryMap.keySet().contains(Integer.parseInt(fields[0]))) {
+                    trajectoryMap.put(Integer.valueOf(fields[0]), new Trajectory(Integer.valueOf(fields[0])));
+                }
+                trajectoryMap.get(Integer.parseInt(fields[0])).addLocation(new Venue(fields[1]), LocalDateTime.parse(fields[2]));
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return new ArrayList<>(trajectoryMap.values());
     }
 
     public static void trajectoriesToCSV(List<Trajectory> trajectories, String pathname, Character separator) throws FileNotFoundException {
