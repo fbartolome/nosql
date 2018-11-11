@@ -7,19 +7,23 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class TrajectoryCreator {
 
     private static final TemporalUnit TIME_UNIT = ChronoUnit.MILLIS;
 
-    private final List<Venue> venues;
+    private final Map<String,Venue> venues;
     private final ThreadLocalRandom random = ThreadLocalRandom.current();
+    private final List<String> venueKeys;
 
-    public TrajectoryCreator(List<Venue> venues) {
+    public TrajectoryCreator(Map<String,Venue> venues) {
         this.venues = venues;
+        this.venueKeys = new ArrayList<>(venues.keySet());
     }
 
 
@@ -60,7 +64,8 @@ public class TrajectoryCreator {
     private Venue getRandomVenue(final Venue lastVenue) {
         Venue venue;
         do {
-            venue = venues.get(random.nextInt(venues.size() + 1));
+            random.nextInt(venueKeys.size()+1);
+            venue = venues.get(venueKeys.get(random.nextInt(venueKeys.size() + 1)));
         } while (venue == lastVenue);
         return venue;
     }

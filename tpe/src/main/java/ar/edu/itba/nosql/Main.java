@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 public class Main {
     public static void main(String[] args) {
@@ -17,7 +18,7 @@ public class Main {
 
             /* categories csv should be in tpe folder */
             String path = Paths.get(".").toAbsolutePath().normalize().toString();
-            List<Venue> venues = CSVManager.csvToVenues(path + "/postgres_public_categories.csv", ',');
+            Map<String,Venue> venues = CSVManager.csvToVenues(path + "/postgres_public_categories.csv", ',');
             TrajectoryCreator trajectoryCreator = new TrajectoryCreator(venues);
             LocalDateTime from = LocalDateTime.of(2018, 10, 10, 12, 0);
             LocalDateTime to = LocalDateTime.of(2018, 10, 11, 12, 0);

@@ -15,13 +15,13 @@ import java.util.stream.Stream;
 
 public class CSVManager {
 
-    public static List<Venue> csvToVenues(String pathname, Character separator) throws IOException {
+    public static Map<String, Venue> csvToVenues(String pathname, Character separator) throws IOException {
         CSVReader reader = new CSVReader(new FileReader(pathname), separator);
         List<String[]> entries = reader.readAll();
-        List<Venue> venues = new LinkedList<Venue>();
+        Map<String, Venue> venues = new HashMap<>();
 
         for (String[] entry : entries) {
-            venues.add(new Venue(entry[0], Double.parseDouble(entry[2]), Double.parseDouble(entry[3])));
+            venues.put(entry[0], new Venue(entry[0], Double.parseDouble(entry[2]), Double.parseDouble(entry[3])));
         }
 
         return venues;
