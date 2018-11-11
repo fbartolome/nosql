@@ -25,4 +25,6 @@ public class Trajectory {
     public List<Visit> getVisits() {
         return visits;
     }
+
+    public void setVisits(List<Visit> visits){this.visits = visits;}
 }

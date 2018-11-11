@@ -39,8 +39,35 @@ public class Venue {
                 '}';
     }
 
+
+
+    /*
+    function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
+  var R = 6371; // Radius of the earth in km
+  var dLat = deg2rad(lat2-lat1);  // deg2rad below
+  var dLon = deg2rad(lon2-lon1);
+  var a =
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+    ;
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  var d = R * c; // Distance in km
+  return d;
+}
+     */
+
+    private double degreesToRadians(Double degrees){
+        return degrees * (Math.PI /180);
+    }
+
     public double getDistanceTo(Venue otherVenue){
-        return Math.pow(Math.abs(latitude - otherVenue.getLatitude()),2) + Math.pow(Math.abs(longitude - otherVenue.getLongitude()), 2);
+        double earthRadius = 6371.0;
+        double dLat = degreesToRadians(latitude - otherVenue.getLatitude());
+        double dLon = degreesToRadians(longitude - otherVenue.getLongitude());
+        double a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(degreesToRadians(otherVenue.latitude)) * Math.cos(degreesToRadians(latitude)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return earthRadius * c;
     }
 
 }

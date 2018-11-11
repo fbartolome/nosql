@@ -1,6 +1,7 @@
 package ar.edu.itba.nosql;
 
 import ar.edu.itba.nosql.algorithms.TrajectoryCreator;
+import ar.edu.itba.nosql.algorithms.TrajectoryPrunner;
 import ar.edu.itba.nosql.io.CSVManager;
 import ar.edu.itba.nosql.models.Trajectory;
 import ar.edu.itba.nosql.models.Venue;
@@ -22,11 +23,20 @@ public class Main {
             TrajectoryCreator trajectoryCreator = new TrajectoryCreator(venues);
             LocalDateTime from = LocalDateTime.of(2018, 10, 10, 12, 0);
             LocalDateTime to = LocalDateTime.of(2018, 10, 11, 12, 0);
-            List<Trajectory> trajectories = trajectoryCreator.createTrajectories(2, from, to, 1, 5);
+            List<Trajectory> trajectories = trajectoryCreator.createTrajectories(1, from, to, 5, 5);
 
 
             CSVManager.trajectoriesToCSV(trajectories, path + "/trajectories.csv",',');
             List<Trajectory> trajectoriesRetrieved = CSVManager.csvToTrajectories(path + "/trajectories.csv",',');
+            TrajectoryPrunner trajectoryPrunner = new TrajectoryPrunner(venues);
+            List<Trajectory> prunnedTrajectories = trajectoryPrunner.trajectoryPrunner(trajectoriesRetrieved, 50.0);
+
+            for(Trajectory t : prunnedTrajectories){
+                for(Visit v : t.getVisits()){
+                    System.out.println(v.getVenueId());
+                }
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }

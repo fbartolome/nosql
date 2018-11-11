@@ -18,13 +18,10 @@ public class TrajectoryPrunner {
     }
 
     public List<Trajectory> trajectoryPrunner(List<Trajectory> trajectories, double maxSpeed){
-        List<Trajectory> prunnedTrajectories = new ArrayList<>();
         for(Trajectory t: trajectories){
-            if(isValidTrajectory(t, maxSpeed)){
-                prunnedTrajectories.add(t);
-            }
+            t.setVisits(getValidVisits(t, maxSpeed));
         }
-        return prunnedTrajectories;
+        return trajectories;
     }
 
     /**
@@ -33,24 +30,25 @@ public class TrajectoryPrunner {
      * @param maxSpeed in km/h to check if the trajectory is reasonable
      * @return
      */
-    public Boolean isValidTrajectory(Trajectory trajectory, double maxSpeed){
+    public List<Visit> getValidVisits(Trajectory trajectory, double maxSpeed){
         List<Visit> visits = trajectory.getVisits();
         Visit prev = null;
+        List<Visit> validVisits = new ArrayList<>();
         for(Visit v: visits){
             if(prev == null){
                 prev = v;
+                validVisits.add(v);
                 continue;
             }
             Long duration = Duration.between(prev.getTimestamp(), v.getTimestamp()).toHours();
             Venue thisVenue = venues.get(v.getVenueId());
             Venue otherVenue = venues.get(prev.getVenueId());
-
-            if(thisVenue.getDistanceTo(otherVenue)/maxSpeed < duration){
-                return false;
+            if(thisVenue.getDistanceTo(otherVenue)/maxSpeed <= duration){
+                prev = v;
+                validVisits.add(v);
             }
-            prev = v;
         }
-        return true;
+        return validVisits;
     }
 
 
