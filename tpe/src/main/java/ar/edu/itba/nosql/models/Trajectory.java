@@ -18,13 +18,11 @@ public class Trajectory {
         visits.add(new Visit(venue.getId(), timestamp));
     }
 
-    private class Visit {
-        private final String venueId;
-        private final LocalDateTime timestamp;
+    public int getUserId() {
+        return userId;
+    }
 
-        private Visit(String venueId, LocalDateTime timestamp) {
-            this.venueId = venueId;
-            this.timestamp = timestamp;
-        }
+    public List<Visit> getVisits() {
+        return visits;
     }
 }

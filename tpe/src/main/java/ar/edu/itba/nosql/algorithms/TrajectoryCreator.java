@@ -2,9 +2,7 @@ package ar.edu.itba.nosql.algorithms;
 
 import ar.edu.itba.nosql.models.Trajectory;
 import ar.edu.itba.nosql.models.Venue;
-import com.opencsv.CSVReader;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -20,15 +18,10 @@ public class TrajectoryCreator {
     private final List<Venue> venues;
     private final ThreadLocalRandom random = ThreadLocalRandom.current();
 
-    public TrajectoryCreator(String categoriesFile, Character separator) throws IOException {
-        CSVReader reader = new CSVReader(new FileReader(categoriesFile), separator);
-        List<String[]> entries = reader.readAll();
-        venues = new LinkedList<Venue>();
-
-        for (String[] entry : entries) {
-            venues.add(new Venue(entry[0], Double.parseDouble(entry[2]), Double.parseDouble(entry[3])));
-        }
+    public TrajectoryCreator(List<Venue> venues) {
+        this.venues = venues;
     }
+
 
     public List<Trajectory> createTrajectories(int trajectoryAmount, LocalDateTime from, LocalDateTime to,
                                    int minLocations, int maxLocations) throws IOException {
