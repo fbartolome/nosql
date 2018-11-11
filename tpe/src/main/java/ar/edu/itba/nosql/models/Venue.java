@@ -33,4 +33,8 @@ public class Venue {
                 '}';
     }
 
+    public double getDistanceTo(Venue otherVenue){
+        return Math.pow(Math.abs(latitude - otherVenue.getLatitude()),2) + Math.pow(Math.abs(longitude - otherVenue.getLongitude()), 2);
+    }
+
 }
