@@ -41,7 +41,12 @@ public class TrajectoryCreator {
     private Trajectory createTrajectory(int userId, LocalDateTime from, LocalDateTime to,
                                         int minLocations, int maxLocations) {
         final Trajectory trajectory = new Trajectory(userId);
-        final int visits = this.random.nextInt(minLocations, maxLocations + 1);
+        int visits;
+        if(minLocations == maxLocations){
+            visits = minLocations;
+        }else{
+            visits = this.random.nextInt(minLocations, maxLocations);
+        }
         Venue lastVenue = null;
 
         for (int i = 0; i < visits; i++) {
@@ -65,7 +70,7 @@ public class TrajectoryCreator {
         Venue venue;
         do {
             random.nextInt(venueKeys.size()+1);
-            venue = venues.get(venueKeys.get(random.nextInt(venueKeys.size() + 1)));
+            venue = venues.get(venueKeys.get(random.nextInt(venueKeys.size())));
         } while (venue == lastVenue);
         return venue;
     }
