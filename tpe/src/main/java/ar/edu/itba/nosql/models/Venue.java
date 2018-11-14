@@ -5,17 +5,25 @@ public class Venue {
     private final String id;
     private final double latitude;
     private final double longitude;
+    private final String category;
+    private final String cattype;
 
-    public Venue(String id, double latitude, double longitude) {
+    public Venue(String id, double latitude, double longitude, String category, String cattype) {
         this.id = id;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.category = category;
+        this.cattype = cattype;
     }
 
     public Venue(String id) {
         this.id = id;
+        // TODO ver si esto queda asi o menos kbeza
         latitude = 0;
         longitude = 0;
+        category = "";
+        cattype = "";
+
     }
 
     public String getId() {
@@ -30,6 +38,14 @@ public class Venue {
         return longitude;
     }
 
+    public String getCategory() {
+        return category;
+    }
+
+    public String getCattype() {
+        return cattype;
+    }
+
     @Override
     public String toString() {
         return "Venue{" +
@@ -38,24 +54,6 @@ public class Venue {
                 ", longitude=" + longitude +
                 '}';
     }
-
-
-
-    /*
-    function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
-  var R = 6371; // Radius of the earth in km
-  var dLat = deg2rad(lat2-lat1);  // deg2rad below
-  var dLon = deg2rad(lon2-lon1);
-  var a =
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon/2) * Math.sin(dLon/2)
-    ;
-  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  var d = R * c; // Distance in km
-  return d;
-}
-     */
 
     private double degreesToRadians(Double degrees){
         return degrees * (Math.PI /180);

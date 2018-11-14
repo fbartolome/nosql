@@ -21,7 +21,8 @@ public class CSVManager {
         Map<String, Venue> venues = new HashMap<>();
 
         for (String[] entry : entries) {
-            venues.put(entry[0], new Venue(entry[0], Double.parseDouble(entry[2]), Double.parseDouble(entry[3])));
+            venues.put(entry[0], new Venue(entry[0], Double.parseDouble(entry[2]), Double.parseDouble(entry[3]),
+                    entry[1], entry[4]));
         }
 
         return venues;

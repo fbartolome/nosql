@@ -1,11 +1,11 @@
 package ar.edu.itba.nosql;
 
+import ar.edu.itba.nosql.algorithms.DistributedModelling;
 import ar.edu.itba.nosql.algorithms.TrajectoryCreator;
 import ar.edu.itba.nosql.algorithms.TrajectoryPrunner;
 import ar.edu.itba.nosql.io.CSVManager;
 import ar.edu.itba.nosql.models.Trajectory;
 import ar.edu.itba.nosql.models.Venue;
-import ar.edu.itba.nosql.models.Visit;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -16,7 +16,6 @@ import java.util.Map;
 public class Main {
     public static void main(String[] args) {
         try {
-
             /* categories csv should be in tpe folder */
             String path = Paths.get(".").toAbsolutePath().normalize().toString();
             Map<String,Venue> venues = CSVManager.csvToVenues(path + "/postgres_public_categories.csv", ',');
@@ -25,17 +24,15 @@ public class Main {
             LocalDateTime to = LocalDateTime.of(2018, 10, 11, 12, 0);
             List<Trajectory> trajectories = trajectoryCreator.createTrajectories(1, from, to, 5, 5);
 
-
             CSVManager.trajectoriesToCSV(trajectories, path + "/trajectories.csv",',');
             List<Trajectory> trajectoriesRetrieved = CSVManager.csvToTrajectories(path + "/trajectories.csv",',');
             TrajectoryPrunner trajectoryPrunner = new TrajectoryPrunner(venues);
             List<Trajectory> prunnedTrajectories = trajectoryPrunner.trajectoryPrunner(trajectoriesRetrieved, 50.0);
 
-            for(Trajectory t : prunnedTrajectories){
-                for(Visit v : t.getVisits()){
-                    System.out.println(v.getVenueId());
-                }
-            }
+            DistributedModelling graphModelling = new DistributedModelling();
+            graphModelling.createVenuesGraph(venues);
+            graphModelling.addTrajectories(prunnedTrajectories, venues);
+            graphModelling.printGraphFeatures();
 
         } catch (IOException e) {
             e.printStackTrace();
