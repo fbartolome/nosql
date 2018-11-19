@@ -20,7 +20,7 @@ public class Main {
             // Generate random trajectories
             /* categories csv should be in tpe folder */
             String path = Paths.get(".").toAbsolutePath().normalize().toString();
-            Map<String,Venue> venues = CSVManager.csvToVenues(path + "/postgres_public_categories.csv", ',');
+            Map<String,Venue> venues = CSVManager.csvToVenues(path + "/venues.csv", ',');
             TrajectoryCreator trajectoryCreator = new TrajectoryCreator(venues);
             TrajectoryPrunner trajectoryPrunner = new TrajectoryPrunner(venues);
 

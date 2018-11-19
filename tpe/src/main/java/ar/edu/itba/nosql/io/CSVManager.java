@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 public class CSVManager {
 
     public static Map<String, Venue> csvToVenues(String pathname, Character separator) throws IOException {
-        CSVReader reader = new CSVReader(new FileReader(pathname), separator);
+      try (CSVReader reader = new CSVReader(new FileReader(pathname), separator)) {
         List<String[]> entries = reader.readAll();
         Map<String, Venue> venues = new HashMap<>();
 
@@ -26,10 +26,11 @@ public class CSVManager {
         }
 
         return venues;
+      }
     }
 
     // TODO
-    public static List<Trajectory> csvToTrajectories(String pathname, Character separator) {
+    public static List<Trajectory> csvToTrajectories(String pathname, Character separator) throws IOException {
         Map<Integer,Trajectory> trajectoryMap = new HashMap<>();
         try (Stream<String> stream = Files.lines(Paths.get(pathname), StandardCharsets.ISO_8859_1)){
             stream.forEach(line -> {
@@ -39,8 +40,6 @@ public class CSVManager {
                 }
                 trajectoryMap.get(Integer.parseInt(fields[0])).addLocation(new Venue(fields[1]), LocalDateTime.parse(fields[2]));
             });
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
         return new ArrayList<>(trajectoryMap.values());
