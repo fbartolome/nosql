@@ -38,11 +38,11 @@ public class Venue {
         return longitude;
     }
 
-    public String getCategory() {
+    public String getSubcategory() {
         return category;
     }
 
-    public String getCattype() {
+    public String getCategory() {
         return cattype;
     }
 

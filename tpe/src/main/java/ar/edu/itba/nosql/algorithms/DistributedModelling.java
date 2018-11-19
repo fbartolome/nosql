@@ -28,17 +28,17 @@ public class DistributedModelling {
             Vertex categoryVertex, cattypeVertex, venueVertex;
 
             // Add all vertices if it doesn't exist in the graph already
-            if(categoryVertices.containsKey(venue.getCategory())){
-                categoryVertex = categoryVertices.get(venue.getCategory());
+            if(categoryVertices.containsKey(venue.getSubcategory())){
+                categoryVertex = categoryVertices.get(venue.getSubcategory());
             }else{
-                categoryVertex = graph.addVertex(T.label, "Category", "name", venue.getCategory());
-                categoryVertices.put(venue.getCategory(), categoryVertex);
+                categoryVertex = graph.addVertex(T.label, "Category", "name", venue.getSubcategory());
+                categoryVertices.put(venue.getSubcategory(), categoryVertex);
             }
-            if(cattypeVertices.containsKey(venue.getCattype())){
-                cattypeVertex = cattypeVertices.get(venue.getCattype());
+            if(cattypeVertices.containsKey(venue.getCategory())){
+                cattypeVertex = cattypeVertices.get(venue.getCategory());
             }else{
-                cattypeVertex = graph.addVertex(T.label, "Categories", "name", venue.getCattype());
-                cattypeVertices.put(venue.getCattype(), cattypeVertex);
+                cattypeVertex = graph.addVertex(T.label, "Categories", "name", venue.getCategory());
+                cattypeVertices.put(venue.getCategory(), cattypeVertex);
             }
             if(venueVertices.containsKey(venue.getId())){
                 venueVertex = venueVertices.get(venue.getId());
