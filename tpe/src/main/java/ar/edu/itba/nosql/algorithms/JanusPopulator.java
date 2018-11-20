@@ -10,8 +10,8 @@ import ar.edu.itba.nosql.models.Visit;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import java.io.IOException;
-import java.time.ZoneId;
-import java.util.Date;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +67,7 @@ public class JanusPopulator {
     final JanusGraphManagement management = graph.openManagement();
 
     management.makePropertyKey(USER_ID_PROPERTY).dataType(Long.class).cardinality(SINGLE).make();
-    management.makePropertyKey(TIMESTAMP_PROPERTY).dataType(Date.class).cardinality(SINGLE).make();
+    management.makePropertyKey(TIMESTAMP_PROPERTY).dataType(String.class).cardinality(SINGLE).make();
     management.makePropertyKey(VISIT_INDEX_PROPERTY).dataType(Integer.class).cardinality(SINGLE).make();
     management.makePropertyKey(VENUE_ID_PROPERTY).dataType(String.class).cardinality(SINGLE).make();
     management.makePropertyKey(SUBCATEGORY_PROPERTY).dataType(String.class).cardinality(SINGLE).make();
@@ -129,12 +129,10 @@ public class JanusPopulator {
       int visitNumber = 1;
       Vertex lastStopVertex = null;
       for (final Visit visit : trajectory.getVisits()) {
-        // https://stackoverflow.com/questions/19431234/converting-between-java-time-localdatetime-and-java-util-date
-        final Date timestamp = Date.from(visit.getTimestamp().atZone(ZoneId.systemDefault()).toInstant());
         final Vertex venueVertex = venues.get(visit.getVenueId());
         final Vertex currentStopVertex = transaction.addVertex(T.label, STOP_VERTEX);
         currentStopVertex.property(USER_ID_PROPERTY, userId);
-        currentStopVertex.property(TIMESTAMP_PROPERTY, timestamp);
+        currentStopVertex.property(TIMESTAMP_PROPERTY, visit.getTimestamp().toString());
         currentStopVertex.property(VISIT_INDEX_PROPERTY, visitNumber++);
         currentStopVertex.addEdge(HAS_VENUE_EDGE, venueVertex);
         if (lastStopVertex != null) {
@@ -185,6 +183,12 @@ public class JanusPopulator {
     public static Arguments from(final String[] args) {
       final Arguments arguments = new Arguments();
       JCommander.newBuilder().addObject(arguments).build().parse(args);
+      if (!Files.isReadable(Paths.get(arguments.venuesPath()))) {
+        throw new IllegalArgumentException("Invalid venues path");
+      }
+      if (!Files.isReadable(Paths.get(arguments.trajectoriesPath()))) {
+        throw new IllegalArgumentException("Invalid trajectories path");
+      }
       return arguments;
     }
   }
