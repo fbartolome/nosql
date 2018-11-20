@@ -23,7 +23,7 @@ public class Main {
             TrajectoryPrunner trajectoryPrunner = new TrajectoryPrunner(venues);
 
             // Generate SS
-            generateTrajectories(trajectoryCreator, trajectoryPrunner, path, 1000, 5, 5, path + "/trajectoriesSS.csv", path + "/prunnedTrajectoriesSS.csv");
+            generateTrajectories(trajectoryCreator, trajectoryPrunner, path, 1000, 100, 100, path + "/trajectoriesSS.csv", path + "/prunnedTrajectoriesSS.csv");
             // Generate SL
             generateTrajectories(trajectoryCreator, trajectoryPrunner, path, 1000, 200, 200, path + "/trajectoriesSL.csv", path + "/prunnedTrajectoriesSL.csv");
             // Generate LS
