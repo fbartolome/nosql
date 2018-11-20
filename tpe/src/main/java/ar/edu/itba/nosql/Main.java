@@ -1,17 +1,12 @@
 package ar.edu.itba.nosql;
 
-import ar.edu.itba.nosql.algorithms.DistributedModelling;
-import ar.edu.itba.nosql.algorithms.JanusPopulator;
 import ar.edu.itba.nosql.algorithms.TrajectoryCreator;
 import ar.edu.itba.nosql.algorithms.TrajectoryPrunner;
 import ar.edu.itba.nosql.io.CSVManager;
 import ar.edu.itba.nosql.models.Trajectory;
 import ar.edu.itba.nosql.models.Venue;
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,16 +22,14 @@ public class Main {
             TrajectoryCreator trajectoryCreator = new TrajectoryCreator(venues);
             TrajectoryPrunner trajectoryPrunner = new TrajectoryPrunner(venues);
 
-            // TODO ver que el avg largo de trayectorias no sean - max y min
-            List<Trajectory> TrajectoriesSS = generateTrajectories(trajectoryCreator, trajectoryPrunner, path, 1000, 5, 5, path + "/trajectoriesSS.csv", path + "/prunnedTrajectoriesSS.csv");
-            List<Trajectory> TrajectoriesSL = generateTrajectories(trajectoryCreator, trajectoryPrunner, path, 1000, 200, 200, path + "/trajectoriesSL.csv", path + "/prunnedTrajectoriesSL.csv");
-            List<Trajectory> TrajectoriesLS = generateTrajectories(trajectoryCreator, trajectoryPrunner, path, 10000, 100, 100, path + "/trajectoriesLS.csv", path + "/prunnedTrajectoriesLS.csv");
-            List<Trajectory> TrajectoriesLL = generateTrajectories(trajectoryCreator, trajectoryPrunner, path, 10000, 200, 200, path + "/trajectoriesLL.csv", path + "/prunnedTrajectoriesLL.csv");
-
-            CSVManager.trajectoriesToCSV(TrajectoriesSS, "TrajectoriesSS.csv", ';');
-            CSVManager.trajectoriesToCSV(TrajectoriesSL, "TrajectoriesSL.csv", ';');
-            CSVManager.trajectoriesToCSV(TrajectoriesLS, "TrajectoriesLS.csv", ';');
-            CSVManager.trajectoriesToCSV(TrajectoriesLL, "TrajectoriesLL.csv", ';');
+            // Generate SS
+            generateTrajectories(trajectoryCreator, trajectoryPrunner, path, 1000, 5, 5, path + "/trajectoriesSS.csv", path + "/prunnedTrajectoriesSS.csv");
+            // Generate SL
+            generateTrajectories(trajectoryCreator, trajectoryPrunner, path, 1000, 200, 200, path + "/trajectoriesSL.csv", path + "/prunnedTrajectoriesSL.csv");
+            // Generate LS
+            generateTrajectories(trajectoryCreator, trajectoryPrunner, path, 10000, 100, 100, path + "/trajectoriesLS.csv", path + "/prunnedTrajectoriesLS.csv");
+            // Generate LL
+            generateTrajectories(trajectoryCreator, trajectoryPrunner, path, 10000, 200, 200, path + "/trajectoriesLL.csv", path + "/prunnedTrajectoriesLL.csv");
 
         } catch (IOException e) {
             e.printStackTrace();
