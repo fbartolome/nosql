@@ -1,14 +1,30 @@
 package ar.edu.itba.nosql.queries;
 
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.CATEGORY_PROPERTY;
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.HAS_CATEGORY_EDGE;
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.HAS_STEP_EDGE;
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.HAS_SUBCATEGORY_EDGE;
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.HAS_VENUE_EDGE;
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.STOP_VERTEX;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
+
+import ar.edu.itba.nosql.algorithms.JanusPopulator;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiPredicate;
+
+import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.process.traversal.Scope;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphFactory;
+import sun.jvm.hotspot.utilities.Interval;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -64,12 +80,21 @@ public class JanusQueryRunner {
 
   private static void query2(final JanusGraph graph) {
     final GraphTraversalSource g = graph.traversal();
-    final GraphTraversal<Vertex, Path> result = g.V()
+    final GraphTraversal<Vertex, Path> result = g.V().as("start")
         .where(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
             .has(CATEGORY_PROPERTY, "Home"))
         .repeat(out(HAS_STEP_EDGE))
         .until(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
-            .has(CATEGORY_PROPERTY, "Airport"))
+            .has(CATEGORY_PROPERTY, "Airport")).as("finish")
+            .filter(select("start","finish").by(JanusPopulator.TIMESTAMP_PROPERTY).where("start", P.test(new BiPredicate() {
+                @Override
+                public boolean test(Object o, Object o2) {
+                    final String start = (String) o;
+                    final String finish = (String) o2;
+
+                    return start.substring(0,10).equals(finish.substring(0,10));
+                }
+            }, "finish")))
         .path();
     printResult(result);
   }
@@ -101,6 +126,8 @@ public class JanusQueryRunner {
     System.out.println("Result:");
     result.toStream().forEach(System.out::println);
   }
+
+//  private boolean sameDay(Str)
 
   private static final class Arguments {
 
