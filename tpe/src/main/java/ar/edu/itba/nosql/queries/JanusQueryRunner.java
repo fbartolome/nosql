@@ -1,25 +1,21 @@
 package ar.edu.itba.nosql.queries;
 
-import static ar.edu.itba.nosql.algorithms.JanusPopulator.CATEGORY_PROPERTY;
-import static ar.edu.itba.nosql.algorithms.JanusPopulator.HAS_CATEGORY_EDGE;
-import static ar.edu.itba.nosql.algorithms.JanusPopulator.HAS_STEP_EDGE;
-import static ar.edu.itba.nosql.algorithms.JanusPopulator.HAS_SUBCATEGORY_EDGE;
-import static ar.edu.itba.nosql.algorithms.JanusPopulator.HAS_VENUE_EDGE;
-import static ar.edu.itba.nosql.algorithms.JanusPopulator.STOP_VERTEX;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.as;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.hasLabel;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
-
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
+import org.apache.tinkerpop.gremlin.process.traversal.Scope;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphFactory;
+
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.*;
+import static org.apache.tinkerpop.gremlin.process.traversal.P.eq;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
 
 public class JanusQueryRunner {
 
@@ -80,10 +76,25 @@ public class JanusQueryRunner {
 
   private static void query3(final JanusGraph graph) {
     final GraphTraversalSource g = graph.traversal();
+    final GraphTraversal<Vertex, Path> result = g.V()
+            .where(hasLabel(STOP_VERTEX)).as("firstStop").out(HAS_VENUE_EDGE).as("firstStopVenue").in(HAS_VENUE_EDGE)
+            .repeat(out(HAS_STEP_EDGE))
+            .times(2).as("lastStop").out(HAS_VENUE_EDGE).as("lastStopVenue")
+            .select("firstStopVenue","lastStopVenue").by(VENUE_ID_PROPERTY)
+            .where("firstStopVenue", eq("lastStopVenue"))
+            .path();
+    printResult(result);
   }
 
   private static void query4(final JanusGraph graph) {
     final GraphTraversalSource g = graph.traversal();
+    final GraphTraversal<Vertex, Path> result = g.V()
+            .where(hasLabel(STOP_VERTEX)).as("stopVertex")
+            .group("stopVertex").by(USER_ID_PROPERTY)
+            .repeat(out(HAS_STEP_EDGE))
+            .emit().path().count(Scope.local).max().path();
+    printResult(result);
+
   }
 
   private static <T, V> void printResult(final GraphTraversal<T, V> result) {
