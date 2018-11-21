@@ -1,27 +1,7 @@
 package ar.edu.itba.nosql.queries;
 
-import static ar.edu.itba.nosql.algorithms.JanusPopulator.CATEGORY_PROPERTY;
-import static ar.edu.itba.nosql.algorithms.JanusPopulator.HAS_CATEGORY_EDGE;
-import static ar.edu.itba.nosql.algorithms.JanusPopulator.HAS_STEP_EDGE;
-import static ar.edu.itba.nosql.algorithms.JanusPopulator.HAS_SUBCATEGORY_EDGE;
-import static ar.edu.itba.nosql.algorithms.JanusPopulator.HAS_VENUE_EDGE;
-import static ar.edu.itba.nosql.algorithms.JanusPopulator.STOP_VERTEX;
-import static ar.edu.itba.nosql.algorithms.JanusPopulator.TIMESTAMP_PROPERTY;
-import static ar.edu.itba.nosql.algorithms.JanusPopulator.USER_ID_PROPERTY;
-import static ar.edu.itba.nosql.algorithms.JanusPopulator.VISIT_INDEX_PROPERTY;
-import static org.apache.tinkerpop.gremlin.process.traversal.Order.decr;
-import static org.apache.tinkerpop.gremlin.process.traversal.P.eq;
-import static org.apache.tinkerpop.gremlin.process.traversal.P.not;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.count;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.hasLabel;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.select;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.valueMap;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.values;
-
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import java.util.concurrent.TimeUnit;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.process.traversal.Scope;
@@ -30,6 +10,14 @@ import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSo
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphFactory;
+
+import java.util.concurrent.TimeUnit;
+
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.*;
+import static org.apache.tinkerpop.gremlin.process.traversal.Order.decr;
+import static org.apache.tinkerpop.gremlin.process.traversal.P.eq;
+import static org.apache.tinkerpop.gremlin.process.traversal.P.not;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
 
 public class JanusQueryRunner {
 
