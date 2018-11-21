@@ -83,11 +83,7 @@ public class JanusQueryRunner {
         .until(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
             .has(CATEGORY_PROPERTY, "Airport"))
         .as("finish")
-        .filter(select("start", "finish").by(TIMESTAMP_PROPERTY).where("start", P.test((o, o2) -> {
-          final String start = (String) o;
-          final String finish = (String) o2;
-          return start.substring(0, 10).equals(finish.substring(0, 10));
-        }, "finish")))
+        .filter(select("start", "finish").by(TIMESTAMP_PROPERTY).where("start", sameDay("finish")))
         .path();
     printResult(result);
   }
