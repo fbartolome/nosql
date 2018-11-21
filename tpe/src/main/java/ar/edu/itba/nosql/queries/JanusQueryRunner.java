@@ -1,7 +1,27 @@
 package ar.edu.itba.nosql.queries;
 
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.CATEGORY_PROPERTY;
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.HAS_CATEGORY_EDGE;
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.HAS_STEP_EDGE;
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.HAS_SUBCATEGORY_EDGE;
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.HAS_VENUE_EDGE;
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.STOP_VERTEX;
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.TIMESTAMP_PROPERTY;
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.USER_ID_PROPERTY;
+import static ar.edu.itba.nosql.algorithms.JanusPopulator.VISIT_INDEX_PROPERTY;
+import static org.apache.tinkerpop.gremlin.process.traversal.Order.decr;
+import static org.apache.tinkerpop.gremlin.process.traversal.P.eq;
+import static org.apache.tinkerpop.gremlin.process.traversal.P.not;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.count;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.hasLabel;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.select;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.valueMap;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.values;
+
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import java.util.concurrent.TimeUnit;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.process.traversal.Scope;
@@ -10,12 +30,6 @@ import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSo
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphFactory;
-
-import java.util.concurrent.TimeUnit;
-
-import static ar.edu.itba.nosql.algorithms.JanusPopulator.*;
-import static org.apache.tinkerpop.gremlin.process.traversal.P.eq;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
 
 public class JanusQueryRunner {
 
@@ -47,20 +61,21 @@ public class JanusQueryRunner {
     System.out.println("Finished in " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime) + " ms");
   }
 
-    private static void query1(final JanusGraph graph) {
-        final GraphTraversalSource g = graph.traversal();
-        final GraphTraversal<Vertex, Path> result = g.V()
-                .where(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
-                        .has(CATEGORY_PROPERTY, "Home"))
-                .out(HAS_STEP_EDGE)
-                .where(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
-                        .has(CATEGORY_PROPERTY, "Station"))
-                .out(HAS_STEP_EDGE)
-                .where(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
-                        .has(CATEGORY_PROPERTY, "Airport"))
-                .path();
-        printResult(result);
-    }
+  private static void query1(final JanusGraph graph) {
+    final GraphTraversalSource g = graph.traversal();
+    final GraphTraversal<Vertex, Path> result = g.V()
+        .where(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
+            .has(CATEGORY_PROPERTY, "Home"))
+        .out(HAS_STEP_EDGE)
+        .where(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
+            .has(CATEGORY_PROPERTY, "Station"))
+        .out(HAS_STEP_EDGE)
+        .where(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
+            .has(CATEGORY_PROPERTY, "Airport"))
+        .path()
+        .by(values(USER_ID_PROPERTY, VISIT_INDEX_PROPERTY).fold());
+    printResult(result);
+  }
 
   private static void query2(final JanusGraph graph) {
     final GraphTraversalSource g = graph.traversal();
@@ -72,11 +87,7 @@ public class JanusQueryRunner {
         .until(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
             .has(CATEGORY_PROPERTY, "Airport"))
         .as("finish")
-        .filter(select("start", "finish").by(TIMESTAMP_PROPERTY).where("start", P.test((o, o2) -> {
-          final String start = (String) o;
-          final String finish = (String) o2;
-          return start.substring(0, 10).equals(finish.substring(0, 10));
-        }, "finish")))
+        .filter(select("start", "finish").by(TIMESTAMP_PROPERTY).where("start", sameDay("finish")))
         .path();
     printResult(result);
   }
@@ -97,12 +108,17 @@ public class JanusQueryRunner {
   private static void query4(final JanusGraph graph) {
     final GraphTraversalSource g = graph.traversal();
     final GraphTraversal<Vertex, Path> result = g.V()
-        .where(hasLabel(STOP_VERTEX)).as("stopVertex")
-        .group("stopVertex").by(USER_ID_PROPERTY)
+        .where(hasLabel(STOP_VERTEX))
+        .as("start")
         .repeat(out(HAS_STEP_EDGE))
-        .emit().path().count(Scope.local).max().path();
+        .until(out(HAS_STEP_EDGE).count().is(eq(0))
+            .or().as("end").select("start", "end").by(TIMESTAMP_PROPERTY).where("start", not(sameDay("end"))))
+        .path()
+        .by(valueMap(true))
+        .order().by(count(Scope.local), decr);
+        // group by user
+        // limit to 1 per group
     printResult(result);
-
   }
 
   private static P sameDay(final Object value) {
