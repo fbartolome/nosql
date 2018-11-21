@@ -58,7 +58,7 @@ public class TrajectoryCreator {
             final long units = TIME_UNIT.between(from, to);
             final LocalDateTime timestamp = from.plus(random.nextLong(units), TIME_UNIT);
 
-            trajectory.addLocation(venue, timestamp);
+            trajectory.addVisit(venue, timestamp);
 
             from = timestamp;
         }

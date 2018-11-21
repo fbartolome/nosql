@@ -38,7 +38,7 @@ public class CSVManager {
                 if(!trajectoryMap.keySet().contains(Integer.parseInt(fields[0]))) {
                     trajectoryMap.put(Integer.valueOf(fields[0]), new Trajectory(Integer.valueOf(fields[0])));
                 }
-                trajectoryMap.get(Integer.parseInt(fields[0])).addLocation(new Venue(fields[1]), LocalDateTime.parse(fields[2]));
+                trajectoryMap.get(Integer.parseInt(fields[0])).addVisit(new Venue(fields[1]), LocalDateTime.parse(fields[2]));
             });
         }
 

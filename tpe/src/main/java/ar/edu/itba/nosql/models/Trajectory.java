@@ -14,7 +14,7 @@ public class Trajectory {
         this.visits = new LinkedList<>();
     }
 
-    public void addLocation(Venue venue, LocalDateTime timestamp){
+    public void addVisit(Venue venue, LocalDateTime timestamp){
         visits.add(new Visit(venue.getId(), timestamp));
     }
 
