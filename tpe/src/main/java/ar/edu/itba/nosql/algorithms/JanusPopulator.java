@@ -1,21 +1,14 @@
 package ar.edu.itba.nosql.algorithms;
 
+import static org.janusgraph.core.Cardinality.SINGLE;
+import static org.janusgraph.core.Multiplicity.MANY2ONE;
+
 import ar.edu.itba.nosql.io.CSVManager;
 import ar.edu.itba.nosql.models.Trajectory;
 import ar.edu.itba.nosql.models.Venue;
 import ar.edu.itba.nosql.models.Visit;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import org.apache.tinkerpop.gremlin.structure.T;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.io.IoCore;
-import org.janusgraph.core.JanusGraph;
-import org.janusgraph.core.JanusGraphFactory;
-import org.janusgraph.core.JanusGraphTransaction;
-import org.janusgraph.core.PropertyKey;
-import org.janusgraph.core.schema.JanusGraphManagement;
-import org.janusgraph.core.schema.SchemaAction;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -23,9 +16,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-
-import static org.janusgraph.core.Cardinality.SINGLE;
-import static org.janusgraph.core.Multiplicity.MANY2ONE;
+import org.apache.tinkerpop.gremlin.structure.T;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.io.IoCore;
+import org.janusgraph.core.JanusGraph;
+import org.janusgraph.core.JanusGraphFactory;
+import org.janusgraph.core.JanusGraphTransaction;
+import org.janusgraph.core.PropertyKey;
+import org.janusgraph.core.VertexLabel;
+import org.janusgraph.core.schema.JanusGraphManagement;
 
 public class JanusPopulator {
 
@@ -36,7 +35,7 @@ public class JanusPopulator {
   public static final String SUBCATEGORY_PROPERTY = "venuecategory";
   public static final String CATEGORY_PROPERTY = "cattype";
 
-  private static final String TIMESTAMP_INDEX = "byTimestampComposite";
+  private static final String STOP_INDEX = "byTimestampComposite";
   private static final String VENUE_ID_INDEX = "byVenueIdComposite";
   private static final String SUBCATEGORY_INDEX = "bySubcategoryComposite";
   private static final String CATEGORY_INDEX = "byCategoryComposite";
@@ -74,34 +73,31 @@ public class JanusPopulator {
   }
 
   private static void updateIndexes(final JanusGraph graph) throws ExecutionException, InterruptedException {
-    final JanusGraphManagement management = graph.openManagement();
-    management.updateIndex(management.getGraphIndex(TIMESTAMP_INDEX), SchemaAction.REINDEX).get();
-    management.updateIndex(management.getGraphIndex(VENUE_ID_INDEX), SchemaAction.REINDEX).get();
-    management.updateIndex(management.getGraphIndex(SUBCATEGORY_INDEX), SchemaAction.REINDEX).get();
-    management.updateIndex(management.getGraphIndex(CATEGORY_INDEX), SchemaAction.REINDEX).get();
-    management.commit();
+//    final JanusGraphManagement management = graph.openManagement();
+//    management.updateIndex(management.getGraphIndex(STOP_INDEX), SchemaAction.REINDEX).get();
+//    management.updateIndex(management.getGraphIndex(VENUE_ID_INDEX), SchemaAction.REINDEX).get();
+//    management.updateIndex(management.getGraphIndex(SUBCATEGORY_INDEX), SchemaAction.REINDEX).get();
+//    management.updateIndex(management.getGraphIndex(CATEGORY_INDEX), SchemaAction.REINDEX).get();
+//    management.commit();
   }
 
   private static void createSchema(final JanusGraph graph) throws InterruptedException {
+    graph.tx().rollback(); // Never create new indexes while a transaction is active
     final JanusGraphManagement management = graph.openManagement();
 
     // Properties
-    management.makePropertyKey(USER_ID_PROPERTY).dataType(Long.class).cardinality(SINGLE).make();
+    final PropertyKey userIdProperty =
+        management.makePropertyKey(USER_ID_PROPERTY).dataType(Long.class).cardinality(SINGLE).make();
     final PropertyKey timestampProperty =
-            management.makePropertyKey(TIMESTAMP_PROPERTY).dataType(String.class).cardinality(SINGLE).make();
-    management.makePropertyKey(VISIT_INDEX_PROPERTY).dataType(Integer.class).cardinality(SINGLE).make();
+        management.makePropertyKey(TIMESTAMP_PROPERTY).dataType(String.class).cardinality(SINGLE).make();
+    final PropertyKey visitIndexProperty =
+        management.makePropertyKey(VISIT_INDEX_PROPERTY).dataType(Integer.class).cardinality(SINGLE).make();
     final PropertyKey venueProperty =
-            management.makePropertyKey(VENUE_ID_PROPERTY).dataType(String.class).cardinality(SINGLE).make();
+        management.makePropertyKey(VENUE_ID_PROPERTY).dataType(String.class).cardinality(SINGLE).make();
     final PropertyKey subCategoryProperty =
-            management.makePropertyKey(SUBCATEGORY_PROPERTY).dataType(String.class).cardinality(SINGLE).make();
+        management.makePropertyKey(SUBCATEGORY_PROPERTY).dataType(String.class).cardinality(SINGLE).make();
     final PropertyKey categoryProperty =
-            management.makePropertyKey(CATEGORY_PROPERTY).dataType(String.class).cardinality(SINGLE).make();
-
-    // Indexes
-    management.buildIndex(TIMESTAMP_INDEX, Vertex.class).addKey(timestampProperty).buildCompositeIndex();
-    management.buildIndex(VENUE_ID_INDEX, Vertex.class).addKey(venueProperty).buildCompositeIndex();
-    management.buildIndex(SUBCATEGORY_INDEX, Vertex.class).addKey(subCategoryProperty).buildCompositeIndex();
-    management.buildIndex(CATEGORY_INDEX, Vertex.class).addKey(categoryProperty).buildCompositeIndex();
+        management.makePropertyKey(CATEGORY_PROPERTY).dataType(String.class).cardinality(SINGLE).make();
 
     // Edges
     management.makeEdgeLabel(HAS_STEP_EDGE).multiplicity(MANY2ONE).make();
@@ -110,16 +106,22 @@ public class JanusPopulator {
     management.makeEdgeLabel(HAS_CATEGORY_EDGE).multiplicity(MANY2ONE).make();
 
     // Vertices
-    management.makeVertexLabel(STOP_VERTEX).make();
-    management.makeVertexLabel(VENUE_VERTEX).make();
-    management.makeVertexLabel(SUBCATEGORY_VERTEX).make();
-    management.makeVertexLabel(CATEGORY_VERTEX).make();
+    final VertexLabel stopLabel = management.makeVertexLabel(STOP_VERTEX).make();
+    final VertexLabel venueLabel = management.makeVertexLabel(VENUE_VERTEX).make();
+    final VertexLabel subcategoryLabel = management.makeVertexLabel(SUBCATEGORY_VERTEX).make();
+    final VertexLabel categoryLabel = management.makeVertexLabel(CATEGORY_VERTEX).make();
+
+    // Indexes
+    management.buildIndex(STOP_INDEX, Vertex.class).addKey(userIdProperty).addKey(timestampProperty).indexOnly(stopLabel).buildCompositeIndex();
+    management.buildIndex(VENUE_ID_INDEX, Vertex.class).addKey(venueProperty).indexOnly(venueLabel).buildCompositeIndex();
+    management.buildIndex(SUBCATEGORY_INDEX, Vertex.class).addKey(subCategoryProperty).indexOnly(subcategoryLabel).buildCompositeIndex();
+    management.buildIndex(CATEGORY_INDEX, Vertex.class).addKey(categoryProperty).indexOnly(categoryLabel).buildCompositeIndex();
 
     management.commit();
   }
 
   private static Map<String, Vertex> populateVenues(final JanusGraphTransaction transaction,
-                                                    final Map<String, Venue> venues) {
+      final Map<String, Venue> venues) {
     final Map<String, Vertex> categoriesVertices = new HashMap<>();
     final Map<String, Vertex> subcategoriesVertices = new HashMap<>();
     final Map<String, Vertex> venueVertices = new HashMap<>();
@@ -132,7 +134,7 @@ public class JanusPopulator {
         subcategoryVertex = subcategoriesVertices.get(venue.getSubcategory());
       } else {
         subcategoryVertex = transaction
-                .addVertex(T.label, SUBCATEGORY_VERTEX, SUBCATEGORY_PROPERTY, venue.getSubcategory());
+            .addVertex(T.label, SUBCATEGORY_VERTEX, SUBCATEGORY_PROPERTY, venue.getSubcategory());
       }
 
       if (categoriesVertices.containsKey(venue.getCategory())) {
@@ -155,7 +157,7 @@ public class JanusPopulator {
   }
 
   private static void populateTrajectories(final JanusGraphTransaction transaction, final List<Trajectory> trajectories,
-                                           final Map<String, Vertex> venues) {
+      final Map<String, Vertex> venues) {
     for (final Trajectory trajectory : trajectories) {
       final int userId = trajectory.getUserId();
       int visitNumber = 1;
