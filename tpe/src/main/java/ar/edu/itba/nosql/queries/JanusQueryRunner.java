@@ -7,10 +7,12 @@ import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.process.traversal.Scope;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphFactory;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static ar.edu.itba.nosql.algorithms.JanusPopulator.*;
@@ -50,34 +52,39 @@ public class JanusQueryRunner {
   }
 
   private static void query1(final JanusGraph graph) {
-    final GraphTraversalSource g = graph.traversal();
-    final GraphTraversal<Vertex, Path> result = g.V()
-        .where(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
-            .has(CATEGORY_PROPERTY, "Home"))
-        .out(HAS_STEP_EDGE)
-        .where(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
-            .has(CATEGORY_PROPERTY, "Station"))
-        .out(HAS_STEP_EDGE)
-        .where(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
-            .has(CATEGORY_PROPERTY, "Airport"))
-        .path()
-        .by(values(USER_ID_PROPERTY, VISIT_INDEX_PROPERTY).fold());
-    printResult(result);
+      final GraphTraversalSource g = graph.traversal();
+      final GraphTraversal<Vertex, Path> result = g.V()
+              .has(CATEGORY_PROPERTY, "Home")
+              .in(HAS_CATEGORY_EDGE)
+              .in(HAS_SUBCATEGORY_EDGE)
+              .in(HAS_VENUE_EDGE)
+              .out(HAS_STEP_EDGE)
+              .where(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
+                      .has(CATEGORY_PROPERTY, "Station"))
+              .out(HAS_STEP_EDGE)
+              .where(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
+                      .has(CATEGORY_PROPERTY, "Airport"))
+              .path()
+              .by(values(USER_ID_PROPERTY,VISIT_INDEX_PROPERTY).fold());
+      
+      printResult(result);
   }
 
   private static void query2(final JanusGraph graph) {
-    final GraphTraversalSource g = graph.traversal();
-    final GraphTraversal<Vertex, Path> result = g.V()
-        .as("start")
-        .where(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
-            .has(CATEGORY_PROPERTY, "Home"))
-        .repeat(out(HAS_STEP_EDGE))
-        .until(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
-            .has(CATEGORY_PROPERTY, "Airport"))
-        .as("finish")
-        .filter(select("start", "finish").by(TIMESTAMP_PROPERTY).where("start", sameDay("finish")))
-        .path();
-    printResult(result);
+      final GraphTraversalSource g = graph.traversal();
+      final GraphTraversal<Vertex, Path> result = g.V()
+              .has(CATEGORY_PROPERTY,"Home")
+              .in(HAS_CATEGORY_EDGE)
+              .in(HAS_SUBCATEGORY_EDGE)
+              .in(HAS_VENUE_EDGE).as("start")
+              .repeat(out(HAS_STEP_EDGE))
+              .until(hasLabel(STOP_VERTEX).out(HAS_VENUE_EDGE).out(HAS_SUBCATEGORY_EDGE).out(HAS_CATEGORY_EDGE)
+                      .has(CATEGORY_PROPERTY, "Airport"))
+              .as("finish")
+              .filter(select("start", "finish").by(TIMESTAMP_PROPERTY).where("start", sameDay("finish")))
+              .path();
+
+      printResult(result);
   }
 
   private static void query3(final JanusGraph graph) {
@@ -114,6 +121,26 @@ public class JanusQueryRunner {
       final String start = (String) o;
       final String finish = (String) o2;
       return start.substring(0, 10).equals(finish.substring(0, 10));
+    }, value);
+  }
+
+  private static P q2Filter(final Object value) {
+      System.out.println("fsdff");
+    return P.test((o, o2) -> {
+        final Vertex v1 = (Vertex) o;
+        final Vertex v2 = (Vertex) o2;
+
+        if((Integer) v1.value(VISIT_INDEX_PROPERTY) >= (Integer) v2.value(VISIT_INDEX_PROPERTY)){
+            return false;
+        }
+
+        if(!v1.value(USER_ID_PROPERTY).equals(v2.value(USER_ID_PROPERTY))){
+            return false;
+        }
+
+        final String start = v1.value(TIMESTAMP_PROPERTY);
+        final String finish = v2.value(TIMESTAMP_PROPERTY);
+        return start.substring(0, 10).equals(finish.substring(0, 10));
     }, value);
   }
 
